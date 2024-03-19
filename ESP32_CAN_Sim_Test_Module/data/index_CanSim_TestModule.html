@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAN2WLAN</title>
+  <link rel="stylesheet" href="style_CanSim_TestModule.css">
+</head>
+
+<body>
+  <h1>CAN2WLAN Demo</h1>
+  <div class="flex-container">
+    <div class="table-container">
+      <table id="canTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Frame-Length</th>
+            <th>Data</th>
+            <th>Extended Flag</th>
+            <th>RTR Flag</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will be dynamically added here -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="right-column-container">
+      <div class="settings-container">
+        <h2 class="settings-label">Configure CAN-Speed (max. 8 digits):</h2>
+        <input type="number" disabled="false" id="inputInt"></input>
+        <button class="send-button" onclick="SendData()" disabled="false" id="sendButton">SEND</button>
+        <button class="send-button" onclick="ResetSpeed()" disabled="false" id="ResetSpeed">Reset Speed</button>
+      </div>
+
+      <div class="send-container">
+        <h2 class="send-label">Send CAN Frame:</h2>
+        <table id=sendTable>
+          <tbody>
+            <tr>
+              <td> <label for="sendId" class="send-label">ID (hex, 11Bit):</label> </td>
+              <td> <label for="sendFrameLength" class="send-label">Frame Length:</label> </td>
+            </tr>
+            <tr>
+              <td> <input type="text" id="sendId" class="send-input"> </td>
+              <td> <input type="text" id="sendFrameLength" class="send-input"> </td>
+            </tr>
+            <tr>
+              <td colSpan=2> <label for="sendData" class="settings-label">Data (max 8 Byte):</label> </td>
+            </tr>
+            <tr>
+              <td colSpan=2> <input type="text" id="sendData" class="send-input"> </td>
+            </tr>
+            <tr>
+              <td> <label for="sendExtendedFlag" class="settings-label">Extended Flag (1/0):</label> </td>
+              <td> <label for="sendRtrFlag" class="settings-label">RTR Flag (1/0):</label> </td>
+            </tr>
+            <tr>
+              <td> <input type="text" id="sendExtendedFlag" class="send-input"> </td>
+              <td> <input type="text" id="sendRtrFlag" class="send-input"> </td>
+            </tr>
+          </tbody>
+        </table>
+        <button class="send-button" onclick="sendCANFrame()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="export-button" onclick="exportToXML()">Export to XML</button>
+
+  <script src="script_CanSim_TestModule.js"></script>
+
+</body>
+
+</html>
