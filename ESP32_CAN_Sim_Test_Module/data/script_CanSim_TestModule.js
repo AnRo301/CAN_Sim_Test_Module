@@ -125,6 +125,12 @@ function SendData() {
     ws.send(textToSend);
 }
 
+function Config_Speed() {
+    var Speed = document.getElementById("Speed");
+    var SpeedtoSend = Speed.options[Speed.selectedIndex].text;
+    ws.send(SpeedtoSend);
+}
+
 function ResetSpeed() { 
     var reset = 0;
     ws.send(reset);

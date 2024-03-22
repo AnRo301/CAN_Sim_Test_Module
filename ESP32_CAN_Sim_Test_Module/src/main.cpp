@@ -35,5 +35,5 @@ void loop()
 
   WS_Handling();
 
-  vTaskDelay(1000);  
+  vTaskDelay(500);  
 }

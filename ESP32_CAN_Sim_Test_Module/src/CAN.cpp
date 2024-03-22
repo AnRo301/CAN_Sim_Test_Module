@@ -7,6 +7,9 @@
 twai_message_t message;
 twai_message_t message_receive;
 int data_hex = 32;
+twai_general_config_t g_config;
+twai_timing_config_t t_config;
+twai_filter_config_t f_config;
 
 
 /* --------------------------- Tasks and Functions -------------------------- */
@@ -14,10 +17,9 @@ int data_hex = 32;
 void Init_CAN(){
 
   //Initialize configuration structures using macro initializers
-  //twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(GPIO_NUM_36, GPIO_NUM_37, TWAI_MODE_NORMAL); //Breadboard
-  twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(GPIO_NUM_37, GPIO_NUM_36, TWAI_MODE_NORMAL);   //Platine
-  twai_timing_config_t t_config = TWAI_TIMING_CONFIG_25KBITS();
-  twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+  g_config = TWAI_GENERAL_CONFIG_DEFAULT(GPIO_NUM_37, GPIO_NUM_36, TWAI_MODE_NORMAL);   //Platine
+  t_config = TWAI_TIMING_CONFIG_25KBITS();
+  f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
   // Install TWAI driver
   if (twai_driver_install(&g_config, &t_config, &f_config) == ESP_OK)
@@ -48,7 +50,7 @@ void twai_receive_task()
 
     twai_message_t message;
 
-    if(twai_receive(&message, portMAX_DELAY) == ESP_OK){
+    if(twai_receive(&message, 1000) == ESP_OK){
     printf("0x%03x :", message.identifier);
     printf("0x%03x :", message.data_length_code);
     if (!(message.rtr))
@@ -367,4 +369,73 @@ int Change_Baudrate(int  baudrate_r){
   
   printf("\nBaudrate changed to %8x\n", bset);
   return bset;
+}
+
+void Change_CAN_Speed(uint8_t *data){
+
+  if(data[0] == '1' && data[1] == 'M'){
+    t_config = TWAI_TIMING_CONFIG_1MBITS();
+    printf("\nCAN-Speed changed to 1Mbit/s\n");
+  } else if(data[0] == '8'){
+    t_config = TWAI_TIMING_CONFIG_800KBITS();
+    printf("\nCAN-Speed changed to 800Kbit/s\n");
+  } else if(data[0] == '5' && data[2] == '0'){
+    t_config = TWAI_TIMING_CONFIG_500KBITS();
+    printf("\nCAN-Speed changed to 500Kbit/s\n");
+  } else if(data[0] == '2' && data[2] == '0'){
+    t_config = TWAI_TIMING_CONFIG_250KBITS();
+    printf("\nCAN-Speed changed to 250Kbit/s\n");
+  } else if(data[0] == '1' && data[1] == '2'){
+    t_config = TWAI_TIMING_CONFIG_125KBITS();
+    printf("\nCAN-Speed changed to 125Kbit/s\n");
+  } else if(data[0] == '1' && data[2] == '0'){
+    t_config = TWAI_TIMING_CONFIG_100KBITS();
+    printf("\nCAN-Speed changed to 100Kbit/s\n");
+  } else if(data[0] == '5' && data[1] == '0'){
+    t_config = TWAI_TIMING_CONFIG_50KBITS();
+    printf("\nCAN-Speed changed to 50Kbit/s\n");
+  } else if(data[0] == '2' && data[1] == '5'){
+    t_config = TWAI_TIMING_CONFIG_25KBITS();
+    printf("\nCAN-Speed changed to 25Kbit/s\n");
+  }else{
+    t_config = TWAI_TIMING_CONFIG_25KBITS();
+    printf("\nDefault CAN-Speed\n");
+  }
+
+  //Stop the TWAI driver
+  if (twai_stop() == ESP_OK) {
+    printf("Driver stopped\n");
+  } else {
+    printf("Failed to stop driver\n");
+    return;
+  }
+
+  //Uninstall the TWAI driver
+  if (twai_driver_uninstall() == ESP_OK) {
+    printf("Driver uninstalled\n");
+  } else {
+    printf("Failed to uninstall driver\n");
+    return;
+  }
+
+  // Install TWAI driver
+  if (twai_driver_install(&g_config, &t_config, &f_config) == ESP_OK)
+  {
+    printf("Driver installed\n");
+  }
+  else
+  {
+    printf("Failed to install driver\n");
+    return;
+  }
+  // Start TWAI driver
+  if (twai_start() == ESP_OK)
+  {
+    printf("Driver started\n");
+  }
+  else
+  {
+    printf("Failed to start driver\n");
+    return;
+  }
 }

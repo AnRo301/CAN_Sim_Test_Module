@@ -560,106 +560,17 @@ void WS_Handling(){
 
       } else{
 
-      
-
       Serial.print("Data received: ");
       printf("Length: ");
       printf("%08d\n", len);
 
       for(int i=0; i < len; i++) {
           Serial.print((char) data[i]);
-          //value(i) = ((char) data[i]);
-          //b_read.push_back(data[i]);
           b_read[8 - len + i] = data[i];
       }
 
-      for (int j = 0; j < (8 - len); j++)
-      {
-        b_read[j] = 0x00;
+        Change_CAN_Speed(data);
       }
-
-      Serial.println();
-
-      cout << data[0] << data[1] << data[2] << data[3] << data[4] << data[5] << data[6] << data[7] << endl; 
-      cout << b_read[0] << b_read[1] << b_read[2] << b_read[3] << b_read[4] << b_read[5] << b_read[6] << b_read[7] << endl;
-
-      uint8_t digit0 = b_read[0]; 
-      uint8_t digit1 = b_read[1]; 
-      uint8_t digit2 = b_read[2]; 
-      uint8_t digit3 = b_read[3]; 
-      uint8_t digit4 = b_read[4]; 
-      uint8_t digit5 = b_read[5]; 
-      uint8_t digit6 = b_read[6]; 
-      uint8_t digit7 = b_read[7];
-
-      uint8_t combined1 = combineDigits(digit0, digit1);
-      uint8_t combined2 = combineDigits(digit2, digit3);
-      uint8_t combined3 = combineDigits(digit4, digit5);
-      uint8_t combined4 = combineDigits(digit6, digit7);
-
-      cout << "Die kombinierten Zahlen sind: 0x" << hex << static_cast<uint16_t>(combined1) << endl; 
-      cout << "Die kombinierten Zahlen sind: 0x" << hex << static_cast<uint16_t>(combined2) << endl; 
-      cout << "Die kombinierten Zahlen sind: 0x" << hex << static_cast<uint16_t>(combined3) << endl; 
-      cout << "Die kombinierten Zahlen sind: 0x" << hex << static_cast<uint16_t>(combined4) << endl; 
-
-      vector<uint8_t> Baudrate_read_vector = {combined1, combined2, combined3, combined4};
-      int Baudrate_read_int = convertVectorToInt(Baudrate_read_vector); 
-      cout << "Converted int value dez: " << Baudrate_read_int << endl;
-
-      cout << Baudrate_read_int << endl;
-      cout << hex << Baudrate_read_int << endl;
-      cout << dec << Baudrate_read_int << endl;
-
-      //printf("%10d", Baudrate_read_int);
-
-      if(Baudrate_read_int == 115200){
-        printf("isequal to 115200\n");
-      } else if(Baudrate_read_int == 1135104){
-        printf("is equal to 1135104\n");
-      } else if(Baudrate_read_int%1000000 == 115200){
-        printf("proz115200");
-      } else if(Baudrate_read_int%1000000 == 1135104){
-        printf("proz1135..");
-      }else if(Baudrate_read_int%1000000 == 00115200){
-        printf("00115200\n");
-      }else if(Baudrate_read_int%1000000 == 01135104){
-        printf("01135...\n");
-      }
-
-      string nrString = to_string(Baudrate_read_int);
-      int length = nrString.length();
-      cout << nrString << "---Length: " << length << endl;
-
-      vTaskDelay(1000);
-
-        int Baudrate_read_int_dec = ConvertHexToInt(Baudrate_read_int);
-
-        if (Baudrate_set == Baudrate_read_int_dec)
-        {
-          printf("Baudrate set und Baudrate read int dec are similar\n");
-          printf("%8d\n", Baudrate_set);
-          printf("%8d\n", Baudrate_read_int_dec);
-          printf("%8x\n", Baudrate_set);
-          printf("%8x\n", Baudrate_read_int_dec);
-      }
-
-      if (Baudrate_set != Baudrate_read_int_dec)
-      {
-          // Serial.print("*** Your inputInt: ");
-          // Serial.println(Baudrate);
-          printf("***Your Input File: ");
-          printf("%08d\n", Baudrate_read_int);
-          printf("%08x\n", Baudrate_read_int);
-
-          vTaskDelay(1000);
-
-          Baudrate_set = Change_Baudrate(Baudrate_read_int_dec);
-
-          printf("%08x\n", Baudrate_set);
-          cout << Baudrate_set << endl;
-      }
-      }
-
     }
 
  });

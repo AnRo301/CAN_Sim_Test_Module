@@ -31,10 +31,17 @@
     <div class="right-column-container">
       <div class="settings-container">
         <h2 class="settings-label">Configure CAN-Speed (max. 8 digits):</h2>
-        <input type="number" disabled="false" id="inputInt"></input>
-        <button class="send-button" onclick="SendData()" disabled="false" id="sendButton">SEND</button>
-        <button class="send-button" onclick="ResetSpeed()" disabled="false" id="ResetSpeed">Reset Speed</button>
-      </div>
+        <select class="send-button" id="Speed" onchange="Config_Speed()">
+          <option> 25KBits </option>
+          <option> 50KBits </option>
+          <option> 100KBits </option>
+          <option> 125KBits </option>
+          <option> 250KBits </option>
+          <option> 500KBits </option>
+          <option> 800KBits </option>
+          <option> 1MBits </option>
+        </select>
+        </div>
 
       <div class="send-container">
         <h2 class="send-label">Send CAN Frame:</h2>
