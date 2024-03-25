@@ -7,6 +7,7 @@
 twai_message_t message;
 twai_message_t message_receive;
 int data_hex = 32;
+int id_rotate = 0;
 twai_general_config_t g_config;
 twai_timing_config_t t_config;
 twai_filter_config_t f_config;
@@ -62,12 +63,10 @@ void twai_receive_task()
       printf("\n");
     }
 
-    //uint32_t x = message.identifier;
-
-    uint8_t d = (message.identifier >> 24) & 0xFF;  //a
-    uint8_t c = (message.identifier >> 16)& 0xFF;   //b
-    uint8_t b = (message.identifier >> 8) & 0xFF;   //c
-    uint8_t a = message.identifier & 0xFF;          //d
+    uint8_t a = (message.identifier >> 24) & 0xFF;  //a
+    uint8_t b = (message.identifier >> 16)& 0xFF;   //b
+    uint8_t c = (message.identifier >> 8) & 0xFF;   //c
+    uint8_t d = message.identifier & 0xFF;          //d
     
     vector<uint8_t> identifier = {
          static_cast<uint8_t>(a),
@@ -145,10 +144,10 @@ void twai_receive_task_module1(twai_message_t message2)
     uint8_t d = message2.identifier & 0xFF;
     
     std::vector<uint8_t> identifier = {
-         static_cast<uint8_t>(a),
-         static_cast<uint8_t>(b),
          static_cast<uint8_t>(c),
-         static_cast<uint8_t>(d)};
+         static_cast<uint8_t>(d),
+         static_cast<uint8_t>(a),
+         static_cast<uint8_t>(b)};
 
     std::vector<uint8_t> frameLength = {message2.data_length_code};
 
@@ -231,10 +230,27 @@ void twai_transmit_task(twai_message_t message){
 
 void twai_cyclic_send_task(){
   // Build message to send via CAN Bus
-  message.identifier = 0x123;
+
   message.rtr = 0;
-  message.extd = 1;
+  message.extd = 0;
   message.data_length_code = 8;
+
+  if (id_rotate == 0){
+    message.identifier = 0x123;
+    id_rotate = 1;
+  } else if(id_rotate ==1){
+    message.identifier = 0x5EF;
+    id_rotate = 2;
+  } else if(id_rotate ==2){
+    message.extd = 1;
+    message.identifier = 0x15B3;
+    id_rotate = 3;
+  } else if(id_rotate ==3) {
+    message.identifier = 0x9;
+    id_rotate = 0;
+  }
+  
+  
   
   for (int i = 0; i < message.data_length_code; i++){
       message.data[i] = data_hex;
@@ -265,18 +281,6 @@ void twai_cyclic_send_task(){
 }
 
 
-int convertVectorToInt(const vector<uint8_t>& vec) { 
-    
-    int result = 0;
-    
-    for (size_t i = 0; i < vec.size(); i++) { 
-        result = (result << 8) | vec[i]; 
-    } 
-        
-    return result; 
-}
-
-
 int convertVectorToUInt32(const vector<uint8_t>& vec) { 
     
     uint32_t result = 0;
@@ -286,89 +290,6 @@ int convertVectorToUInt32(const vector<uint8_t>& vec) {
     } 
         
     return result; 
-}
-
-
-int ConvertHexToInt(int b){
-  int dez= 9600;
-
-  if(b  == 768){
-    dez = 300;}
-  else if (b == 4608){
-    dez = 1200;}
-  else if(b == 9216){
-    dez=2400;}
-  else if (b == 18432){
-    dez = 4800;}
-  else if (b == 38400){
-    dez = 9600;}
-  else if (b == 102912){
-    dez=19200;}
-  else if (b == 230400){
-    dez = 38400;}
-  else if (b == 357888){
-    dez = 57600;}
-  else if (b == 477312){
-    dez=74880;}
-  else if (b == 1135104){
-      dez = 115200;}
-  else if (b == 2294784){
-    dez = 230400;}
-  else if (b == 2424832){
-    dez=250000;}
-
-  printf("\nDez-Wert:%8d\n", dez);
-  return dez;
-}
-
-
-int Change_Baudrate(int  baudrate_r){
-
-  int bset;
-
-  if(baudrate_r == 300){
-    Serial.begin(300);
-    bset = baudrate_r;}
-  else if(1200){
-    Serial.begin(1200);
-    bset = baudrate_r;}
-  else if(2400){
-    Serial.begin(2400);
-    bset = baudrate_r;}
-  else if(4800){
-    Serial.begin(4800);
-    bset = baudrate_r;}
-  else if(9600){
-      Serial.begin(9600);
-      bset = baudrate_r;}
-  else if(19200){
-      Serial.begin(19200);
-      bset = baudrate_r;}
-  else if(38400){
-      Serial.begin(38400);
-      bset = baudrate_r;}
-  else if(57600){
-      Serial.begin(57600);
-      bset = baudrate_r;}
-  else if(74880){
-      Serial.begin(74880);
-      bset = baudrate_r;}
-  else if(115200){
-      Serial.begin(115200);
-      bset = baudrate_r;}
-  else if(230400){
-      Serial.begin(230400);
-      bset = baudrate_r;}
-  else if(250000){
-      Serial.begin(250000);
-      bset = baudrate_r;}
-  else {
-      Serial.begin(9600);
-      bset = 9600;
-  }
-  
-  printf("\nBaudrate changed to %8x\n", bset);
-  return bset;
 }
 
 void Change_CAN_Speed(uint8_t *data){

@@ -5,7 +5,7 @@
 /* --------------------- Definitions and static variables ------------------ */
 
 WiFiUDP udp;
-const char *ssid = "CAN2WLAN_Module1";
+const char *ssid = "CAN2WLAN_CAN_SIM";
 AsyncWebServer server(80);
 AsyncWebSocket socket("/ws");
 
@@ -32,7 +32,24 @@ void   Init_AP(){
 
 void sendReceivedCANData(CANFrame canFrame) {
 
-  vector<uint8_t> canFrameVec = CANFrame_to_Vec(canFrame);
+  CANFrame canFrame4UDP;
+  vector<uint8_t> id2 ={
+         static_cast<uint8_t>(canFrame.identifier[3]),
+         static_cast<uint8_t>(canFrame.identifier[2]),
+         static_cast<uint8_t>(canFrame.identifier[1]),
+         static_cast<uint8_t>(canFrame.identifier[0])};
+
+  canFrame4UDP.identifier = canFrame.identifier; 
+  canFrame4UDP.frameLength = canFrame.frameLength; 
+  canFrame4UDP.data = canFrame.data; 
+  canFrame4UDP.extFlag = canFrame.extFlag; 
+  canFrame4UDP.rtrFlag = canFrame.rtrFlag;
+  canFrame4UDP.identifier = {static_cast<uint8_t>(canFrame.identifier[3]),
+                    static_cast<uint8_t>(canFrame.identifier[2]),
+                    static_cast<uint8_t>(canFrame.identifier[1]),
+                    static_cast<uint8_t>(canFrame.identifier[0])};
+
+  vector<uint8_t> canFrameVec = CANFrame_to_Vec(canFrame4UDP);
   String canFrameString = CANFrame_to_JSON(canFrame);
       
   size_t canFrameLen = canFrameVec.size();
@@ -75,18 +92,6 @@ void serveFile(AsyncWebServerRequest *request, const char *filename, const char 
   file.close();
 
   request->send(200, contentType, fileContent);
-}
-
-
-void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
-  AwsFrameInfo *info = (AwsFrameInfo*)arg;
-  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-    data[len] = 0;
-    if (strcmp((char*)data, "toggle") == 0) {
-      //ledState = !ledState;
-      //notifyClients();
-    }
-  }
 }
 
 
@@ -163,158 +168,11 @@ String CANFrame_to_JSON (CANFrame canFrame){
   return CANString;
 }
 
-
-CANFrame Rand_CAN_Frame() {
-
-  CANFrame randCanFrame;
-
-  // Seed the random number generator with the current time
-  esp_random() % (UINT32_MAX - 1);
-  vTaskDelay(1);  // Ensuring a delay to let the generator initialize
-
-  std::vector<uint8_t> identifier = {
-      static_cast<uint8_t>(esp_random() % 0xFF + 1),
-      static_cast<uint8_t>(esp_random() % 0xFF + 1),
-      static_cast<uint8_t>(esp_random() % 0xFF + 1),
-      static_cast<uint8_t>(esp_random() % 0xFF + 1)
-  };
-
-  std::vector<uint8_t> frameLength = {0x08};
-  std::vector<uint8_t> data = {
-    static_cast<uint8_t>(esp_random() % 0xFF + 1),
-    static_cast<uint8_t>(esp_random() % 0xFF + 1),
-    static_cast<uint8_t>(esp_random() % 0xFF + 1),
-    static_cast<uint8_t>(esp_random() % 0xFF + 1),
-    static_cast<uint8_t>(esp_random() % 0xFF + 1),
-    static_cast<uint8_t>(esp_random() % 0xFF + 1),
-    static_cast<uint8_t>(esp_random() % 0xFF + 1),
-    static_cast<uint8_t>(esp_random() % 0xFF + 1)
-  };
-
-  std::vector<uint8_t> extFlag = {0x10};
-  std::vector<uint8_t> rtrFlag = {0x00};
-
-  randCanFrame.identifier = identifier;
-  randCanFrame.frameLength = frameLength;
-  randCanFrame.data = data;
-  randCanFrame.extFlag = extFlag;
-  randCanFrame.rtrFlag = rtrFlag;
-
-  return randCanFrame;
-}
-
 void BroadcastUDP(std::vector<uint8_t> data, size_t len) {
   udp.beginPacket("255.255.255.255", 1060);
   udp.write(data.data(), len);
   udp.endPacket();
 }
-
-
-// void sendRandCANData() {
-
-//   CANFrame canFrame = Rand_CAN_Frame();
-
-//   std::vector<uint8_t> canFrameVec = CANFrame_to_Vec(canFrame);
-//   String canFrameString = CANFrame_to_JSON(canFrame);
-      
-//   size_t canFrameLen = canFrameVec.size();
-
-//   BroadcastUDP(canFrameVec, canFrameLen);
-//   ws.textAll(canFrameString);
-
-//   delay(400);
-// }
-
-// void sendReceivedCANData(CANFrame canFrame) {
-
-//   //CANFrame canFrame = Rand_CAN_Frame();
-
-//   std::vector<uint8_t> canFrameVec = CANFrame_to_Vec(canFrame);
-//   String canFrameString = CANFrame_to_JSON(canFrame);
-      
-//   size_t canFrameLen = canFrameVec.size();
-
-//   BroadcastUDP(canFrameVec, canFrameLen);
-//   ws.textAll(canFrameString);
-
-//   delay(400);
-// }
-
-
-String readFile(fs::FS &fs, const char * path){
-  Serial.printf("Reading file: %s\r\n", path);
-  File file = fs.open(path, "r");
-  if(!file || file.isDirectory()){
-    Serial.println("- empty file or failed to open file");
-    return String();
-  }
-  Serial.println("- read from file:");
-  String fileContent;
-  while(file.available()){
-    fileContent+=String((char)file.read());
-  }
-  Serial.println(fileContent);
-  return fileContent;
-}
-
-void writeFile(fs::FS &fs, const char * path, const char * message){
-  Serial.printf("Writing file: %s\r\n", path);
-  File file = fs.open(path, "w");
-  if(!file){
-    Serial.println("- failed to open file for writing");
-    return;
-  }
-  if(file.print(message)){
-    Serial.println("- file written");
-  } else {
-    Serial.println("- write failed");
-  }
-  file.close();
-}
-
-// Replaces placeholder with stored values
-String processor(const String& var){
-  //Serial.println(var);
-  if(var == "inputString"){
-    return readFile(SPIFFS, "/inputString.txt");
-  }
-  else if(var == "inputInt"){
-    return readFile(SPIFFS, "/inputInt.txt");
-  }
-  else if(var == "inputFloat"){
-    return readFile(SPIFFS, "/inputFloat.txt");
-  }
-  return String();
-}
-
-//uint8_t Receive_ws(){
-  
-//  ws.onEvent(onWsEvent);
-
-
-
-//  uint8_t value = 0;
-
-//   ws.onEvent([](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len){
-  
-//     if(type == WS_EVT_DATA){
- 
-//       Serial.print("Data received: ");
- 
-//       for(int i=0; i < len; i++) {
-//           Serial.print((char) data[i]);
-//           //value[i] = ((char) data[i]);
-//       }
-//       Serial.println();
-
-//       return data;
-//     }
-
-//  });
-
-
-
-//}
 
 uint8_t combineDigits(uint8_t num1, uint8_t num2) { // Die letzten 4 Bits jeder Zahl extrahieren 
     uint8_t last4BitsNum1 = num1 & 0x0F; 

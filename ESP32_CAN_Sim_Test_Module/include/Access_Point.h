@@ -35,16 +35,11 @@ void Init_AP();
 
 void sendRandCANData();
 void sendReceivedCANData(CANFrame canFrame);
-String readFile(fs::FS &fs, const char * path);
-void writeFile(fs::FS &fs, const char *path, const char *message);
-String processor(const String &var);
 void onWsEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
-CANFrame Rand_CAN_Frame();
-vector<uint8_t> CANFrame_to_Vec(CANFrame canFrame);
-String CANFrame_to_JSON(CANFrame canFrame);
 void serveFile(AsyncWebServerRequest *request, const char *filename, const char *contentType);
 void BroadcastUDP(std::vector<uint8_t> data, size_t len);
 void WS_Handling();
 uint8_t combineDigits(uint8_t num1, uint8_t num2);
-
+vector<uint8_t> CANFrame_to_Vec(CANFrame canFrame);
+String CANFrame_to_JSON(CANFrame canFrame);
 #endif
