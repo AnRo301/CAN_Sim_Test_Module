@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Simulation of CAN-Bus traffic to verify functionality of CAN_Interface
+Simulation of CAN-Bus traffic to verify functionality of CAN_Interface.
 Messages with different identifiers are cyclically send
 
 For instructions on commissioning, see CAN interface repository:
